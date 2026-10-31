@@ -2,6 +2,7 @@
 
 在 Windows 11（21H2–25H2）+ ExplorerPatcher 上还原 Win10 任务栏「资讯和兴趣」组件的本地实现。
 技术细节见 `docs/技术说明.md`。
+Chinese version only. Other language versions are not available yet.
 
 ## 目录结构
 
