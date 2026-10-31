@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html dir="ltr" lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<style>
+* { margin:0; padding:0; box-sizing:border-box;
+    font-family:"Segoe UI","Microsoft YaHei",sans-serif; }
+html,body { background:#424243; overflow:hidden; }
+.ULSxyf { position:absolute; left:181px; top:152px; width:673px; height:690px; overflow:hidden; }
+.panel { width:673px; height:664px; border-radius:0; color:#fff; overflow:hidden;
+         background:transparent; border:none; position:relative;
+         box-shadow:inset 0 0 0 1px rgba(255,255,255,0.08);
+         display:flex; flex-direction:column; transform:translateY(0);
+         transition:transform .3s cubic-bezier(.17,.84,.44,1); }
+/* film-grain noise + glass inner highlight (pure texture, no layout change) */
+.panel::after { content:"; position:absolute; left:0; top:0; right:0; bottom:0;
+         pointer-events:none; opacity:0.04; mix-blend-mode:overlay;
+         background-image:url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPScxNDAnIGhlaWdodD0nMTQwJz48ZmlsdGVyIGlkPSduJz48ZmVUdXJidWxlbmNlIHR5cGU9J2ZyYWN0YWxOb2lzZScgYmFzZUZyZXF1ZW5jeT0nMC44NScgbnVtT2N0YXZlcz0nMicgc3RpdGNoVGlsZXM9J3N0aXRjaCcvPjwvZmlsdGVyPjxyZWN0IHdpZHRoPScxNDAnIGhlaWdodD0nMTQwJyBmaWx0ZXI9J3VybCgjbiknLz48L3N2Zz4="); }
+.panel.cls { transform:translateY(105%); }
+.panel.closing { transition:transform .24s cubic-bezier(.55,.06,.68,.19); }
+.topbar { display:flex; justify-content:flex-end; align-items:center; gap:4px;
+          padding:12px 12px 8px; flex:none; }
+.tb { display:inline-flex; align-items:center; justify-content:center; width:34px; height:34px;
+      color:#ddd; text-decoration:none; font-size:17px; border-radius:4px; cursor:pointer; }
+.tb:hover { background:rgba(255,255,255,.12); }
+.tb.busy { width:auto; padding:0 8px; font-size:11px; color:#4ea3f1; pointer-events:none; }
+details.menu { position:relative; }
+details.menu summary { list-style:none; display:inline-flex; align-items:center;
+      justify-content:center; width:34px; height:34px; color:#ddd; font-size:17px;
+      border-radius:4px; cursor:pointer; }
+details.menu summary::-webkit-details-marker { display:none; }
+details.menu summary:hover { background:rgba(255,255,255,.12); }
+details.menu[open] summary { background:rgba(255,255,255,.12); }
+.mpop { position:absolute; right:0; top:34px; width:220px; background:rgba(43,43,46,.94);
+        border:1px solid #454545; border-radius:6px; padding:12px 14px; font-size:12px;
+        line-height:1.7; color:#ddd; z-index:60; box-shadow:0 4px 14px rgba(0,0,0,.5); }
+.mpop .mv { font-weight:600; color:#fff; }
+.cols { display:flex; gap:12px; padding:6px 14px 14px; overflow-y:auto; overflow-x:hidden;
+        scrollbar-width:thin; flex:1; align-items:flex-start; }
+.col { display:flex; flex-direction:column; gap:12px; width:316px; flex:none; }
+.dcard { background:#2e2e33; border-radius:8px; padding:12px 14px; }
+.dhead { font-size:14px; font-weight:600; margin-bottom:6px; display:flex;
+         justify-content:space-between; }
+.dhead .chev { color:#999; font-weight:400; }
+/* weather card */
+.wcard { background:linear-gradient(150deg,rgba(59,131,224,.88) 0%,rgba(43,104,196,.88) 60%,rgba(36,86,171,.88) 100%);
+         border-radius:8px; padding:12px 14px 10px; }
+.wloc { font-size:13px; font-weight:600; display:flex; justify-content:space-between; }
+.wcond { font-weight:400; }
+.wmain { display:flex; align-items:center; margin-top:4px; }
+.wmain img.wicon { width:56px; height:56px; margin-right:8px; }
+.wtemp { font-size:44px; font-weight:300; line-height:1; display:flex; align-items:flex-start; }
+.wob-unit { display:flex; flex-direction:column; margin-left:4px; margin-top:2px;
+            font-size:12px; line-height:1.3; }
+.wob-unit span.wob_t { font-weight:600; }
+.wob-unit a.wob_t { color:#fff; opacity:.65; text-decoration:none; cursor:pointer; }
+.wmeta { font-size:11px; opacity:.85; margin-top:6px; }
+.wdays { display:flex; justify-content:space-between; margin-top:8px;
+         border-top:1px solid rgba(255,255,255,.25); padding-top:6px; }
+.wd { display:flex; flex-direction:column; align-items:center; }
+.wd img { width:24px; height:24px; margin:3px 0; }
+.wdl { font-size:11px; opacity:.8; } .wdv { font-size:11px; }
+.wdn { font-size:10px; opacity:.6; }
+.whours { display:flex; justify-content:space-between; margin-top:6px;
+          border-top:1px solid rgba(255,255,255,.25); padding-top:6px; }
+details.wmore { margin:8px auto 0; text-align:center; }
+details.wmore summary { display:inline-block; list-style:none; background:rgba(255,255,255,.18);
+         color:#fff; font-size:12px; padding:4px 22px; border-radius:12px; cursor:pointer; }
+details.wmore summary::-webkit-details-marker { display:none; }
+details.wmore summary:hover { background:rgba(255,255,255,.28); }
+/* markets */
+.mrow { display:flex; justify-content:space-between; align-items:center;
+        padding:6px 0; border-bottom:1px solid #3d3d3d; }
+.mrow:last-child { border-bottom:none; }
+.mcode { font-size:13px; font-weight:600; }
+.mname { font-size:11px; color:#999; margin-top:1px; }
+.mr { text-align:right; }
+.mprice { font-size:13px; font-weight:600; }
+.mpct { font-size:11px; margin-top:1px; }
+.up { color:#e7484d; } .down { color:#2ea043; }
+/* top stories */
+.titem { display:block; text-decoration:none; color:#fff; padding:7px 0;
+         border-bottom:1px solid #3d3d3d; }
+.titem:last-child { border-bottom:none; }
+.tmeta { font-size:11px; color:#4ea3f1; margin-bottom:3px; }
+.ttitle { font-size:13px; font-weight:600; line-height:1.4; display:-webkit-box;
+          -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+.titem:hover .ttitle { text-decoration:underline; }
+/* image cards */
+.icard { display:block; position:relative; border-radius:8px; overflow:hidden;
+         text-decoration:none; color:#fff; background:#2e2e33; }
+.icimg { width:316px; height:170px; object-fit:cover; display:block; }
+.icover { position:absolute; left:0; right:0; bottom:0; padding:26px 12px 10px;
+          background:linear-gradient(transparent,rgba(0,0,0,.85)); }
+.icmeta { font-size:11px; color:#8ec6ff; margin-bottom:3px; }
+.ictitle { font-size:13px; font-weight:600; line-height:1.35; display:-webkit-box;
+           -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+/* leftover text news */
+.news.noimg { display:block; text-decoration:none; color:#fff; }
+.nt { font-size:13px; font-weight:600; line-height:1.4; }
+.nm { font-size:11px; color:#999; margin-top:5px; }
+/* dark scrollbar */
+.cols { scrollbar-color:#4d4d4d #262626; }
+.cols::-webkit-scrollbar { width:9px; }
+.cols::-webkit-scrollbar-thumb { background:#4d4d4d; border-radius:5px;
+        border:2px solid #262626; }
+.cols::-webkit-scrollbar-track { background:transparent; }
+/* location setting in menu */
+.lset { display:flex; gap:6px; margin:8px 0 4px; }
+.lset input { flex:1; min-width:0; background:#1f1f1f; border:1px solid #4a4a4a;
+        border-radius:4px; color:#eee; font-size:12px; padding:5px 8px; outline:none; }
+.lset input:focus { border-color:#4ea3f1; }
+.lset button { background:#2b68c4; border:none; color:#fff; font-size:12px;
+        padding:5px 12px; border-radius:4px; cursor:pointer; }
+.lset button:hover { background:#3b83e0; }
+.lhint { font-size:11px; color:#888; margin-bottom:4px; }
+.freq { display:grid; grid-template-columns:repeat(4,1fr); gap:6px; margin:0 0 6px; }
+.fq { text-align:center; background:rgba(255,255,255,.08); border-radius:4px;
+      color:#ddd; text-decoration:none; padding:4px 0; font-size:12px; cursor:pointer;
+      border:1px solid transparent; }
+.fq:hover { background:rgba(255,255,255,.18); }
+.fq.sel { border-color:#4ea3f1; }
+.fq.on { background:#2b68c4; color:#fff; }
+.fqok { display:block; width:auto; margin:0 0 4px auto; background:#2b68c4; border:none;
+        color:#fff; font-size:12px; padding:5px 12px; border-radius:4px; cursor:pointer; }
+.fqok:hover { background:#3b83e0; }
+</style>
+<script>
+// In-place unit switch: never navigates (a navigation would destroy the JS
+// context before ExplorerPatcher's follow-up script runs -> error page).
+// wob_ttm always keeps the other unit's value for EP's 'x' read path.
+function ep_unit(u) {
+  var tm = document.getElementById('wob_tm');
+  tm.innerText = tm.getAttribute('data-' + u);
+  var span = document.querySelector('.wob-unit span.wob_t');
+  var a = document.querySelector('.wob-unit a.wob_t');
+  if (u === 'f') { span.innerText = '°F'; a.innerText = '°C';
+                   a.onclick = function(){ return ep_unit('c'); }; }
+  else           { span.innerText = '°C'; a.innerText = '°F';
+                   a.onclick = function(){ return ep_unit('f'); }; }
+  return false;
+}
+// Fire-and-forget command channel to the local ep_cmd_server (127.0.0.1:24381).
+// Fetching http:// from a file:// page works here because EP launches WebView2
+// with --disable-web-security. No navigation ever happens in the flyout.
+function ep_cmd(c) {
+  try { fetch('http://127.0.0.1:24381/' + c).catch(function(){}); } catch(e) {}
+  return false;
+}
+function ep_setloc() {
+  var v = document.getElementById('locin').value.trim();
+  if (!v) return false;
+  return ep_cmd('setloc?loc=' + encodeURIComponent(v));
+}
+// refresh: the button flips to a busy label until EP reloads the page (the
+// reload itself restores the icon); a 12 s safety net restores it otherwise
+function ep_refresh() {
+  var b = document.getElementById('rbtn');
+  if (b.getAttribute('data-busy') === '1') return false;
+  b.setAttribute('data-busy', '1');
+  b.className = 'tb busy';
+  b.innerHTML = '刷新中';
+  setTimeout(ep_news, 2500);
+  setTimeout(function() {
+    try { b.className = 'tb'; b.innerHTML = '&#8635;'; b.removeAttribute('data-busy'); } catch (e) {}
+  }, 12000);
+  return ep_cmd('refresh');
+}
+// ---- visibility sync: the host window cannot be moved from outside (EP
+// force-docks it), so the slide animation is done here with CSS transforms.
+// The local service tells us over /vis + /viswait when the window shows/hides.
+var epOpen = true; // matches the initial HTML (panel starts in the open state)
+function ep_collapse(instant) {
+  var p = document.getElementById('stage');
+  if (!epOpen) return;
+  epOpen = false;
+  if (instant) {
+    p.style.transition = 'none';
+    p.classList.remove('closing');
+    p.classList.add('cls');
+    void p.offsetHeight;
+    p.style.transition = '';
+  } else {
+    p.classList.add('closing');
+    p.classList.add('cls');
+  }
+  // closing the panel always folds the ... menu back up
+  var m = document.querySelector('details.menu');
+  if (m) m.open = false;
+}
+function ep_expand(animate) {
+  var p = document.getElementById('stage');
+  if (epOpen) return;
+  epOpen = true;
+  if (!animate) {
+    p.style.transition = 'none';
+    p.classList.remove('cls', 'closing');
+    void p.offsetHeight;
+    p.style.transition = '';
+  } else {
+    p.classList.remove('cls', 'closing');
+  }
+}
+function ep_applyState(t, initial) {
+  var parts = t.split(';');
+  var vis = parts[0] === '1';
+  var age = parseInt(parts[1] || '999999', 10);
+  if (vis) {
+    if (initial && age < 800) {
+      // fresh navigation right as EP shows the flyout: replay the slide-up
+      ep_collapse(true);
+      setTimeout(function() { ep_expand(true); }, 30);
+    } else ep_expand(!initial);
+  } else ep_collapse(true);
+}
+function ep_viswait() {
+  fetch('http://127.0.0.1:24381/viswait').then(function(r) { return r.text(); }).then(function(t) {
+    ep_applyState(t, false);
+    ep_viswait();
+  }).catch(function() { setTimeout(ep_viswait, 2000); });
+}
+fetch('http://127.0.0.1:24381/vis').then(function(r) { return r.text(); }).then(function(t) {
+  ep_applyState(t, true);
+}).catch(function() {});
+ep_viswait();
+// click anywhere outside the ... menu closes it
+document.addEventListener('click', function(e) {
+  var m = document.querySelector('details.menu');
+  if (m && m.open && !m.contains(e.target)) m.open = false;
+});
+// update-frequency: click = blue outline candidate, OK button commits
+var ep_freq_pending = 0;
+function ep_freq(sel, sec) {
+  var as = document.querySelectorAll('.fq');
+  for (var i = 0; i < as.length; i++)
+    as[i].className = as[i].className.replace(' sel', '');
+  if (sel.className.indexOf(' on') < 0) {
+    sel.className += ' sel';
+    ep_freq_pending = sec;
+  }
+  return false;
+}
+function ep_freq_ok() {
+  if (!ep_freq_pending) return false;
+  return ep_cmd('setint?sec=' + ep_freq_pending);
+}
+// news hot-swap: pull the fragment from the local command service and replace
+// both columns in place - no navigation, no EP reload. Refresh timing is
+// server-driven: the service long-polls us via /newswait the moment it has
+// regenerated news.html, so the page keeps no interval timer of its own.
+function ep_news() {
+  try {
+    fetch('http://127.0.0.1:24381/newshtml').then(function(r){ return r.text(); }).then(function(t){
+      var p = t.split('<!--SPLIT-->');
+      if (p.length === 2) {
+        document.getElementById('newsL').innerHTML = p[0];
+        document.getElementById('newsR').innerHTML = p[1];
+      }
+    }).catch(function(){});
+  } catch(e) {}
+}
+function ep_news_wait() {
+  try {
+    fetch('http://127.0.0.1:24381/newswait').then(function(r){ return r.text(); }).then(function(){
+      ep_news();
+      ep_news_wait();
+    }).catch(function(){ setTimeout(ep_news_wait, 5000); });
+  } catch(e) { setTimeout(ep_news_wait, 5000); }
+}
+ep_news_wait();
+// the flyout keeps its DOM while hidden - close the menu every time the
+// panel regains focus (i.e. every time it is reopened)
+window.addEventListener('focus', function() {
+  var m = document.querySelector('details.menu');
+  if (m) m.open = false;
+  // fallback: if the local service is down the /vis channel never answers -
+  // a focused flyout is by definition visible, so expand on our own
+  ep_expand(true);
+});
+document.addEventListener('visibilitychange', function() {
+  if (!document.hidden) ep_expand(true);
+});
+</script>
+</head>
+<body>
+<div class="ULSxyf">
+  <div class="KFFQ0c"></div>
+  <!-- inert protocol hooks: only read by the EP weather-host scrape script -->
+  <span id="wob_dts" style="display:none"></span>
+  <span class="YfftMc" style="display:none"><a href="#"></a></span>
+  <div class="panel" id="stage">
+    <div class="topbar">
+      <a class="tb" id="rbtn" href="javascript:void(0)" onclick="return ep_refresh()" title="刷新">&#8635;</a>
+      <details class="menu"><summary>&#8943;</summary>
+        <div class="mpop"><span class="mv">资讯和兴趣 (本地版)</span> <span style="color:#888">v1.2</span>
+          <div class="lset"><input id="locin" type="text" placeholder="北京" value="北京"><button onclick="ep_setloc();return false">保存</button></div>
+          <div class="lhint">天气地区，保存后数秒内生效</div>
+          <div class="lhint" style="margin-top:6px">更新频率</div>
+          <div class="freq"><a class="fq" href="javascript:void(0)" onclick="return ep_freq(this,60)">1分钟</a><a class="fq" href="javascript:void(0)" onclick="return ep_freq(this,300)">5分钟</a><a class="fq" href="javascript:void(0)" onclick="return ep_freq(this,900)">15分钟</a><a class="fq on" href="javascript:void(0)" onclick="return ep_freq(this,1200)">20分钟</a><a class="fq" href="javascript:void(0)" onclick="return ep_freq(this,1800)">30分钟</a><a class="fq" href="javascript:void(0)" onclick="return ep_freq(this,3600)">1小时</a><a class="fq" href="javascript:void(0)" onclick="return ep_freq(this,10800)">3小时</a><a class="fq" href="javascript:void(0)" onclick="return ep_freq(this,18000)">5小时</a></div>
+          <button class="fqok" onclick="return ep_freq_ok()">确定</button>
+          数据: Open-Meteo ・ 腾讯行情 ・ RSS
+        </div>
+      </details>
+    </div>
+    <div class="cols">
+      <div class="col" id="newsL"><div class="dcard"><div class="dhead">热门故事 <span class="chev">&gt;</span></div><a class="titem" href="javascript:void(0)" onclick="return ep_cmd('open?u=http%3A%2F%2Fwww.chinanews.com.cn%2Ftp%2Fhd2011%2F2026%2F10-30%2F1209282.shtml')"><div class="tmeta">中新网 ・ 7 分钟前</div><div class="ttitle">赵乐际会见德国总统施泰因迈尔</div></a><a class="titem" href="javascript:void(0)" onclick="return ep_cmd('open?u=http%3A%2F%2Fwww.chinanews.com.cn%2Ftp%2Fhd2011%2F2026%2F10-30%2F1209279.shtml')"><div class="tmeta">中新网 ・ 15 分钟前</div><div class="ttitle">习近平同德国总统施泰因迈尔会谈</div></a><a class="titem" href="javascript:void(0)" onclick="return ep_cmd('open?u=http%3A%2F%2Fwww.chinanews.com.cn%2Ftp%2Fhd2011%2F2026%2F10-30%2F1209281.shtml')"><div class="tmeta">中新网 ・ 17 分钟前</div><div class="ttitle">习近平会见瑞士联邦主席帕姆兰</div></a><a class="titem" href="javascript:void(0)" onclick="return ep_cmd('open?u=https%3A%2F%2Fwww.chinanews.com.cn%2Fcj%2F2026%2F10-30%2F10723659.shtml')"><div class="tmeta">中新网 ・ 21 分钟前</div><div class="ttitle">商务部就美国联邦通信委员会投票通过检测实验室限制措施事答记者问</div></a></div><a class="icard" href="javascript:void(0)" onclick="return ep_cmd('open?u=https%3A%2F%2Fwww.ithome.com%2F1%2F020%2F367.htm')"><img class="icimg" src="https://img14.360buyimg.com/pop/jfs/t1/246071/8/34368/47836/68f2057aFfda00a33/a59c994f90ccaaf8.png" loading="lazy" onerror="this.style.display='none'"><div class="icover"><div class="icmeta">IT之家 ・ 5 分钟前</div><div class="ictitle">7000mAh 大电池：小米 17 手机 16GB+512GB 国补后 4999 → 3836 元新低</div></div></a><a class="icard" href="javascript:void(0)" onclick="return ep_cmd('open?u=https%3A%2F%2Fwww.ithome.com%2F1%2F020%2F366.htm')"><img class="icimg" src="https://img.ithome.com/newsuploadfiles/2026/10/012fb4d7-79c5-459f-8044-716db91b990b.jpg?x-bce-process=image/format,f_auto" loading="lazy" onerror="this.style.display='none'"><div class="icover"><div class="icmeta">IT之家 ・ 20 分钟前</div><div class="ictitle">梦想不灭：开发者拒绝 Windows Phone 死亡，利用 AI 辅助为微软 Lumia 640 开发新应用</div></div></a><a class="icard" href="javascript:void(0)" onclick="return ep_cmd('open?u=https%3A%2F%2Fwww.ithome.com%2F1%2F020%2F364.htm')"><img class="icimg" src="https://img.ithome.com/newsuploadfiles/2026/10/6896f70f-4e95-4c97-8009-5b735abe1cac.jpg?x-bce-process=image/format,f_auto" loading="lazy" onerror="this.style.display='none'"><div class="icover"><div class="icmeta">IT之家 ・ 24 分钟前</div><div class="ictitle">英特尔股价开盘跌超 30%，或将创下有记录以来最大单日跌幅</div></div></a><a class="icard" href="javascript:void(0)" onclick="return ep_cmd('open?u=https%3A%2F%2Fwww.ithome.com%2F1%2F020%2F363.htm')"><img class="icimg" src="https://img.ithome.com/newsuploadfiles/2026/10/19b1107b-1ed6-4c48-a54f-8bd497f7f5b7.jpg" loading="lazy" onerror="this.style.display='none'"><div class="icover"><div class="icmeta">IT之家 ・ 29 分钟前</div><div class="ictitle">华为鸿蒙 HarmonyOS 7 系统最新适配进度公开：Mate 80 全网推送、nova 13 等开启花粉 Beta 招募</div></div></a><a class="icard" href="javascript:void(0)" onclick="return ep_cmd('open?u=https%3A%2F%2Fwww.ithome.com%2F1%2F020%2F360.htm')"><img class="icimg" src="https://img.ithome.com/newsuploadfiles/2026/10/388841be-2495-440c-9c0e-20870d4f7323.jpg?x-bce-process=image/format,f_auto" loading="lazy" onerror="this.style.display='none'"><div class="icover"><div class="icmeta">IT之家 ・ 39 分钟前</div><div class="ictitle">黑鲨凤鸣 BE32 蓝牙耳机电竞版发布：2.4G + 蓝牙双模连接、-45dB ANC 混合式降噪，首发价 249 元</div></div></a><a class="icard" href="javascript:void(0)" onclick="return ep_cmd('open?u=https%3A%2F%2Fwww.ithome.com%2F1%2F020%2F358.htm')"><img class="icimg" src="https://img.ithome.com/newsuploadfiles/2026/10/8421169e-4989-4848-ac61-db2abbc60db3.png?x-bce-process=image/format,f_auto" loading="lazy" onerror="this.style.display='none'"><div class="icover"><div class="icmeta">IT之家 ・ 41 分钟前</div><div class="ictitle">地平线创始人余凯吐槽智驾芯片 PPT 算力虚标：英伟达按稠密算力两倍标，而业界已经吹到 6-7 倍</div></div></a><a class="news noimg dcard" href="javascript:void(0)" onclick="return ep_cmd('open?u=https%3A%2F%2Fwww.chinanews.com.cn%2Fgn%2F2026%2F10-30%2F10723653.shtml')"><div class="nb"><div class="nt">云南推动“戎光”入史志</div><div class="nm">中新网 ・ 41 分钟前</div></div></a><a class="news noimg dcard" href="javascript:void(0)" onclick="return ep_cmd('open?u=https%3A%2F%2Fwww.chinanews.com.cn%2Fgn%2F2026%2F10-30%2F10723651.shtml')"><div class="nb"><div class="nt">广东明确“十五五”退役军人服务和保障十大工程</div><div class="nm">中新网 ・ 43 分钟前</div></div></a><a class="news noimg dcard" href="javascript:void(0)" onclick="return ep_cmd('open?u=https%3A%2F%2Fwww.chinanews.com.cn%2Fcj%2F2026%2F10-30%2F10723649.shtml')"><div class="nb"><div class="nt">证监会：全力稳市场稳预期，深化投融资综合改革</div><div class="nm">中新网 ・ 43 分钟前</div></div></a><a class="icard" href="javascript:void(0)" onclick="return ep_cmd('open?u=https%3A%2F%2Fwww.ithome.com%2F1%2F020%2F356.htm')"><img class="icimg" src="https://img14.360buyimg.com/pop/jfs/t1/406912/5/21410/25274/69c63459F4182a3e4/0083320320760aa2.png" loading="lazy" onerror="this.style.display='none'"><div class="icover"><div class="icmeta">IT之家 ・ 48 分钟前</div><div class="ictitle">国补后 1499 → 1049 元：小米米家净水器 2 Pro 双出水 1200G 官方新低</div></div></a><a class="news noimg dcard" href="javascript:void(0)" onclick="return ep_cmd('open?u=https%3A%2F%2Fwww.ithome.com%2F1%2F020%2F354.htm')"><div class="nb"><div class="nt">苹果已收购数据工程公司 Ascend.io，扩大 AI 技术布局</div><div class="nm">IT之家 ・ 51 分钟前</div></div></a></div>
+      <div class="col">
+        <div class="wcard">
+          <div class="wloc"><span id="wob_loc">北京</span><span class="wcond">晴</span></div>
+          <div class="wmain">
+            <img class="YQ4gaf zr758c wicon" id="wob_tci" src="icons/sunny_night.png" alt="晴" width="56" height="56">
+            <div class="wtemp"><span id="wob_tm" data-c="11" data-f="52">11</span><span id="wob_ttm" style="display:none">52</span></div>
+            <div class="wob-unit"><span class="wob_t">°C</span><a class="wob_t" href="javascript:void(0)" onclick="ep_unit('f');return false">°F</a></div>
+          </div>
+          <div class="wmeta">体感 6°C ・ 湿度 36% ・ 风速 15.3 km/h</div>
+          <div class="wdays"><div class="wd"><div class="wdl">今</div><img src="icons/sunny_day.png" alt=""><div class="wdv">21°</div><div class="wdn">6°</div></div><div class="wd"><div class="wdl">六</div><img src="icons/rain_light.png" alt=""><div class="wdv">11°</div><div class="wdn">4°</div></div><div class="wd"><div class="wdl">日</div><img src="icons/cloudy.png" alt=""><div class="wdv">17°</div><div class="wdn">5°</div></div><div class="wd"><div class="wdl">一</div><img src="icons/sunny_day.png" alt=""><div class="wdv">16°</div><div class="wdn">4°</div></div><div class="wd"><div class="wdl">二</div><img src="icons/partly_cloudy_day.png" alt=""><div class="wdv">16°</div><div class="wdn">5°</div></div><div class="wd"><div class="wdl">三</div><img src="icons/cloudy.png" alt=""><div class="wdv">12°</div><div class="wdn">6°</div></div><div class="wd"><div class="wdl">四</div><img src="icons/fog.png" alt=""><div class="wdv">15°</div><div class="wdn">6°</div></div></div>
+          <details class="wmore"><summary>更多</summary><div class="whours"><div class="wd"><div class="wdl">22:00</div><img src="icons/sunny_night.png" alt=""><div class="wdv">11°</div></div><div class="wd"><div class="wdl">23:00</div><img src="icons/sunny_night.png" alt=""><div class="wdv">10°</div></div><div class="wd"><div class="wdl">00:00</div><img src="icons/sunny_night.png" alt=""><div class="wdv">8°</div></div><div class="wd"><div class="wdl">01:00</div><img src="icons/sunny_night.png" alt=""><div class="wdv">7°</div></div><div class="wd"><div class="wdl">02:00</div><img src="icons/sunny_night.png" alt=""><div class="wdv">6°</div></div><div class="wd"><div class="wdl">03:00</div><img src="icons/partly_cloudy_night.png" alt=""><div class="wdv">6°</div></div><div class="wd"><div class="wdl">04:00</div><img src="icons/partly_cloudy_night.png" alt=""><div class="wdv">6°</div></div><div class="wd"><div class="wdl">05:00</div><img src="icons/sunny_night.png" alt=""><div class="wdv">6°</div></div></div></details>
+        </div>
+        <div class="col" id="newsR" style="width:auto;flex:none"><div class="dcard"><div class="dhead">市场</div><div class="mrow"><div class="ml"><div class="mcode">000001</div><div class="mname">上证指数</div></div><div class="mr"><div class="mprice">3,599.02</div><div class="mpct down">-1.44%</div></div></div><div class="mrow"><div class="ml"><div class="mcode">399001</div><div class="mname">深证成指</div></div><div class="mr"><div class="mprice">10,833.78</div><div class="mpct down">-2.73%</div></div></div><div class="mrow"><div class="ml"><div class="mcode">399006</div><div class="mname">创业板指</div></div><div class="mr"><div class="mprice">2,413.63</div><div class="mpct down">-4.13%</div></div></div><div class="mrow"><div class="ml"><div class="mcode">HSI</div><div class="mname">恒生指数</div></div><div class="mr"><div class="mprice">23,294.42</div><div class="mpct up">+1.46%</div></div></div></div><a class="icard" href="javascript:void(0)" onclick="return ep_cmd('open?u=https%3A%2F%2Fwww.ithome.com%2F1%2F020%2F365.htm')"><img class="icimg" src="https://img14.360buyimg.com/pop/jfs/t1/441530/29/18869/149212/6a278245Fec756bf5/00833203206398f3.png" loading="lazy" onerror="this.style.display='none'"><div class="icover"><div class="icmeta">IT之家 ・ 22 分钟前</div><div class="ictitle">HKC“天启”27U240B 电竞显示器 4799 → 3805 元：4K 240Hz 三星四代 QD-OLED、配 DP 2.1 + 90W USB-C</div></div></a><a class="news noimg dcard" href="javascript:void(0)" onclick="return ep_cmd('open?u=https%3A%2F%2Fwww.chinanews.com.cn%2Fiframe%2F2026%2F10-30%2F10723658.shtml')"><div class="nb"><div class="nt">10月30日夜读</div><div class="nm">中新网 ・ 28 分钟前</div></div></a><a class="news noimg dcard" href="javascript:void(0)" onclick="return ep_cmd('open?u=https%3A%2F%2Fwww.chinanews.com.cn%2Fsh%2F2026%2F10-30%2F10723655.shtml')"><div class="nb"><div class="nt">三部门增加调拨1000套中央救灾物资板房 保障西藏受灾群众安全温暖过冬</div><div class="nm">中新网 ・ 31 分钟前</div></div></a><a class="news noimg dcard" href="javascript:void(0)" onclick="return ep_cmd('open?u=https%3A%2F%2Fwww.chinanews.com.cn%2Ftp%2F2026%2F10-30%2F10723623.shtml')"><div class="nb"><div class="nt">合肥秋色次第铺展 水上“小提琴”层林尽染</div><div class="nm">中新网 ・ 32 分钟前</div></div></a><a class="news noimg dcard" href="javascript:void(0)" onclick="return ep_cmd('open?u=https%3A%2F%2Fwww.ithome.com%2F1%2F020%2F361.htm')"><div class="nb"><div class="nt">奥尔特曼回应 AI 冲击：理解数学家的处境，但 OpenAI 不会停止研究</div><div class="nm">IT之家 ・ 34 分钟前</div></div></a><a class="icard" href="javascript:void(0)" onclick="return ep_cmd('open?u=https%3A%2F%2Fwww.ithome.com%2F1%2F020%2F359.htm')"><img class="icimg" src="https://img14.360buyimg.com/pop/jfs/t1/457756/5/6755/31772/6a30b97eFd61c9030/0083320320b79642.png" loading="lazy" onerror="this.style.display='none'"><div class="icover"><div class="icmeta">IT之家 ・ 40 分钟前</div><div class="ictitle">12mm 动圈 + 36 小时续航：森海塞尔 ACCENTUM Clip 耳夹式耳机 1499 → 1091 元国补新低</div></div></a><a class="news noimg dcard" href="javascript:void(0)" onclick="return ep_cmd('open?u=https%3A%2F%2Fwww.chinanews.com.cn%2Fmz%2F2026%2F10-30%2F10723646.shtml')"><div class="nb"><div class="nt">文脉共续、产业共兴、邻里共融：探访云南民族团结的生动实践</div><div class="nm">中新网 ・ 41 分钟前</div></div></a><a class="news noimg dcard" href="javascript:void(0)" onclick="return ep_cmd('open?u=https%3A%2F%2Fwww.chinanews.com.cn%2Fty%2F2026%2F10-30%2F10723654.shtml')"><div class="nb"><div class="nt">中国最北滑雪场开板迎客</div><div class="nm">中新网 ・ 41 分钟前</div></div></a><a class="news noimg dcard" href="javascript:void(0)" onclick="return ep_cmd('open?u=https%3A%2F%2Fwww.chinanews.com.cn%2Fsh%2F2026%2F10-30%2F10723652.shtml')"><div class="nb"><div class="nt">跨越三千公里的“光明接力” 常德援藏守护西藏隆子群众“视”界</div><div class="nm">中新网 ・ 41 分钟前</div></div></a><a class="news noimg dcard" href="javascript:void(0)" onclick="return ep_cmd('open?u=https%3A%2F%2Fwww.chinanews.com.cn%2Fgn%2F2026%2F10-30%2F10723650.shtml')"><div class="nb"><div class="nt">一江珠水连濠江，十年共治润民心</div><div class="nm">中新网 ・ 43 分钟前</div></div></a><a class="news noimg dcard" href="javascript:void(0)" onclick="return ep_cmd('open?u=https%3A%2F%2Fwww.ithome.com%2F1%2F020%2F357.htm')"><div class="nb"><div class="nt">消息称谷歌 Android 17 全球占比仅 1%，安卓系统版本碎片化问题依旧严峻</div><div class="nm">IT之家 ・ 44 分钟前</div></div></a><a class="icard" href="javascript:void(0)" onclick="return ep_cmd('open?u=https%3A%2F%2Fwww.ithome.com%2F1%2F020%2F355.htm')"><img class="icimg" src="https://img14.360buyimg.com/pop/jfs/t1/396032/38/20151/88177/69a7d5daF3444e226/00833203209a161f.png" loading="lazy" onerror="this.style.display='none'"><div class="icover"><div class="icmeta">IT之家 ・ 48 分钟前</div><div class="ictitle">海信 E7S Pro RGB-Mini LED 电视 75 英寸 8499 → 6999 元，4K 180Hz 玲珑真彩背光屏</div></div></a><a class="news noimg dcard" href="javascript:void(0)" onclick="return ep_cmd('open?u=https%3A%2F%2Fwww.ithome.com%2F1%2F020%2F353.htm')"><div class="nb"><div class="nt">双 2.5G 网口 + 支持 WiFi 7：中兴问天 BE7200 Pro + 路由器 599 → 348 元国补新低</div><div class="nm">IT之家 ・ 54 分钟前</div></div></a></div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>
